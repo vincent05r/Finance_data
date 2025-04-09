@@ -5,15 +5,53 @@ from datetime import datetime, timedelta
 from time import sleep
 import csv
 
-def download_and_save_data(ticker, interval, start_date, end_date, save_dir:str, sleep_time:int = 2):
+def download_and_save_data(ticker, interval, start_date, end_date, save_dir:str, sleep_time:int = 2, drop_last: bool = True, drop_NA:bool=True):
     try:
-        data = yf.download(ticker, start=start_date, end=end_date, interval=interval, progress=False)
+        c_ticker = yf.Ticker(ticker)
+        data = c_ticker.history(start=start_date, end=end_date, interval=interval)
         if not data.empty:
             # Create directory for the index and interval if it doesn't exist
             dir_path = os.path.join(save_dir, interval)
             os.makedirs(dir_path, exist_ok=True)
             # Save to CSV
             file_path = os.path.join(dir_path, f"{ticker}.csv")
+            #process df
+            if drop_last:
+                list_axis = ['Dividends','Stock Splits']
+                data.drop(list_axis, axis=1, inplace=True)
+            if drop_NA:
+                data.dropna(inplace=True)
+
+            data.to_csv(file_path)
+            print(f"Data for {ticker} saved successfully.")
+        else:
+            print(f"No data found for {ticker}.")
+    except Exception as e:
+        print(f"Error downloading data for {ticker}: {e}")
+    # Sleep to respect rate limits
+    sleep(sleep_time)
+
+
+def download_and_save_data_period(ticker, interval, period, save_dir:str, sleep_time:int = 2, drop_last: bool = True, drop_NA:bool=True):
+    '''
+    period: current 8d for 1m interval, 730d for 1h interval max
+    '''
+    try:
+        c_ticker = yf.Ticker(ticker)
+        data = c_ticker.history(period=period, interval=interval)
+        if not data.empty:
+            # Create directory for the index and interval if it doesn't exist
+            dir_path = os.path.join(save_dir, interval)
+            os.makedirs(dir_path, exist_ok=True)
+            # Save to CSV
+            file_path = os.path.join(dir_path, f"{ticker}.csv")
+            #process df
+            if drop_last:
+                list_axis = ['Dividends','Stock Splits']
+                data.drop(list_axis, axis=1, inplace=True)
+            if drop_NA:
+                data.dropna(inplace=True)
+
             data.to_csv(file_path)
             print(f"Data for {ticker} saved successfully.")
         else:
