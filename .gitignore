@@ -1,1 +1,6 @@
 stock_datasets/
+crypto_datasets/
+forex_datasets/
+futures_datasets/
+raw/
+v1_no_volume/

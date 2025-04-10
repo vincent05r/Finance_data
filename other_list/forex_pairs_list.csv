@@ -1,0 +1,21 @@
+Category,Pair,Ticker
+Major Pairs (with USD),EUR/USD,EURUSD=X
+Major Pairs (with USD),GBP/USD,GBPUSD=X
+Major Pairs (with USD),USD/JPY,JPY=X
+Major Pairs (with USD),USD/CHF,CHF=X
+Major Pairs (with USD),USD/CAD,CAD=X
+Major Pairs (with USD),AUD/USD,AUDUSD=X
+Major Pairs (with USD),NZD/USD,NZDUSD=X
+Crosses (without USD),EUR/GBP,EURGBP=X
+Crosses (without USD),EUR/JPY,EURJPY=X
+Crosses (without USD),EUR/CHF,EURCHF=X
+Crosses (without USD),EUR/AUD,EURAUD=X
+Crosses (without USD),GBP/JPY,GBPJPY=X
+Crosses (without USD),GBP/CHF,GBPCHF=X
+Crosses (without USD),AUD/JPY,AUDJPY=X
+Crosses (without USD),NZD/JPY,NZDJPY=X
+Crosses (without USD),CHF/JPY,CHFJPY=X
+Exotic/Commodity-Linked,USD/SGD,USDSGD=X
+Exotic/Commodity-Linked,USD/SEK,USDSEK=X
+Exotic/Commodity-Linked,USD/NOK,USDNOK=X
+Exotic/Commodity-Linked,USD/MXN,USDMXN=X

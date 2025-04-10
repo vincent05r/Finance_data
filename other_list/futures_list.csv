@@ -1,0 +1,22 @@
+Category,Name,Ticker
+Index Futures,S&P 500 Futures,ES=F
+Index Futures,Nasdaq 100 Futures,NQ=F
+Index Futures,Dow Jones Futures,YM=F
+Index Futures,Russell 2000 Futures,RTY=F
+Energy Futures,Crude Oil WTI,CL=F
+Energy Futures,Brent Crude Oil,BZ=F
+Energy Futures,Natural Gas,NG=F
+Energy Futures,Heating Oil,HO=F
+Interest Rate Futures,10-Year T-Note,ZN=F
+Interest Rate Futures,5-Year T-Note,ZF=F
+Interest Rate Futures,2-Year T-Note,ZT=F
+Interest Rate Futures,Eurodollar Futures,GE=F
+Metal Futures,Gold,GC=F
+Metal Futures,Silver,SI=F
+Metal Futures,Copper,HG=F
+Metal Futures,Platinum,PL=F
+Agricultural Futures,Corn,ZC=F
+Agricultural Futures,Soybeans,ZS=F
+Agricultural Futures,Wheat,ZW=F
+Agricultural Futures,Coffee,KC=F
+Agricultural Futures,Cotton,CT=F
