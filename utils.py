@@ -36,6 +36,9 @@ def download_and_save_data_period(ticker, interval, period, save_dir:str, sleep_
     '''
     period: current 8d for 1m interval, 730d for 1h interval max
     '''
+
+    rt_string = None
+
     try:
         c_ticker = yf.Ticker(ticker)
         data = c_ticker.history(period=period, interval=interval)
@@ -54,13 +57,18 @@ def download_and_save_data_period(ticker, interval, period, save_dir:str, sleep_
 
             data.to_csv(file_path)
             print(f"Data for {ticker} saved successfully.")
+            # rt_string = f"Data for {ticker} saved successfully."
+
         else:
             print(f"No data found for {ticker}.")
+            rt_string = f"No data found for {ticker}."
+
     except Exception as e:
         print(f"Error downloading data for {ticker}: {e}")
+        rt_string = f"Error downloading data for {ticker}: {e}"
     # Sleep to respect rate limits
     sleep(sleep_time)
-
+    return rt_string
 
 def csv_symbol(csv_path: str, skip_first: bool = True, symbol_index: int = 0):
     with open(csv_path, mode='r', newline='') as file:
