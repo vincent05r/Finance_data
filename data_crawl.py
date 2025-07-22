@@ -19,7 +19,7 @@ save_dir = os.path.join(main_save_dir_name, f"snapshot_{timestamp}")
 os.makedirs(save_dir, exist_ok=True)
 
 
-symbol_path_pool = csv_symbol("all_symbol_c.csv")
+symbol_path_pool = csv_symbol("/home/vincent-1080/repo/Finance_data/all_symbol_c.csv")
 
 summary_log = []
 
