@@ -1,0 +1,4 @@
+2025-08-14 16:02:08,070 [INFO] Starting merge pipeline.
+2025-08-14 16:02:08,070 [INFO] Config: Config(input_root=PosixPath('/home/vincent-1080/repo/Finance_data/FTS_data_snapshots'), output_dir=PosixPath('test_merge'), tz_strategy='to_utc', assume_naive_tz='UTC', expected_freq_seconds=None, gap_factor=1.5, max_within_day_gap_hours=6.0, csv_engine='pyarrow', write_parquet=False)
+2025-08-14 16:02:08,095 [INFO] Discovered 3699 CSV files across 1233 symbols.
+2025-08-14 16:02:08,096 [INFO] [0001.HK] processing 3 files
