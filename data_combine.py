@@ -133,9 +133,8 @@ def parse_datetime_col(
 def infer_bar_seconds(ts_like, logger: logging.Logger) -> int:
     """
     Infer expected bar size (in seconds) from intra-day deltas.
-    Accepts a pandas Series/DatetimeIndex/array-like and coerces to a tz-aware UTC DatetimeIndex.
-    Heuristic: use the modal delta among small (<1h) gaps within same calendar day.
-    Fallbacks: 60s (minute) if inference fails.
+    Accepts Series/DatetimeIndex/array-like and coerces to a tz-aware UTC DatetimeIndex.
+    Uses the modal adjacent delta among small (<1h) same-day gaps.
     """
     # Coerce to DatetimeIndex
     if isinstance(ts_like, pd.Series):
@@ -147,27 +146,28 @@ def infer_bar_seconds(ts_like, logger: logging.Logger) -> int:
 
     # Normalize to tz-aware UTC
     if idx.tz is None:
-        # If naive, assume it’s already UTC (matches the rest of the pipeline)
         idx = idx.tz_localize("UTC")
     else:
         idx = idx.tz_convert("UTC")
 
-    # Guard: too few points
+    # Guard
     if len(idx) < 3:
         return 60
 
-    # Ensure sorted (don’t mutate caller)
+    # Sort (don’t mutate caller)
     idx = idx.sort_values()
 
-    # Compute intra-day deltas (avoid overnight gaps dominating)
-    days = idx.date
-    same_day = np.concatenate([[False], days[1:] == days[:-1]])
-    deltas = np.diff(idx.view("i8")) / 1e9  # seconds
+    # Adjacent deltas (N-1)
+    deltas = np.diff(idx.view("i8")) / 1e9  # seconds, float64 length N-1
 
+    # Same-day adjacency mask, also length N-1
+    dates = idx.date
+    same_day = (dates[1:] == dates[:-1])
+
+    # Limit to small intra-day gaps
     small = (deltas > 0) & (deltas <= 3600) & same_day
     if np.any(small):
         vals = deltas[small].astype(int)
-        # Mode
         unique, counts = np.unique(vals, return_counts=True)
         return int(unique[np.argmax(counts)])
 
@@ -244,32 +244,46 @@ def resolve_duplicates_and_conflicts(
     return out_df, conflicts_df
 
 def detect_within_day_gaps(
-    ts: pd.DatetimeIndex,
+    ts_like,  # accept Series/DatetimeIndex/array-like
     expected_sec: int,
     gap_factor: float,
     max_within_day_gap_hours: float,
 ) -> pd.DataFrame:
-    """Return a DataFrame of gaps within a calendar day.
-       We flag delta >= expected_sec * gap_factor and < max_within_day_gap_hours.
+    """Return within-day gaps where delta >= expected_freq * gap_factor and < max window.
+       Accepts Series/DatetimeIndex/array-like; coerces to tz-aware UTC DatetimeIndex.
     """
-    if len(ts) < 2:
+    # --- Coerce to DatetimeIndex and normalize tz to UTC ---
+    if isinstance(ts_like, pd.Series):
+        idx = pd.DatetimeIndex(ts_like)
+    elif isinstance(ts_like, pd.DatetimeIndex):
+        idx = ts_like
+    else:
+        idx = pd.DatetimeIndex(ts_like)
+
+    if len(idx) < 2:
         return pd.DataFrame(columns=["start", "end", "gap_seconds", "missing_bars"])
 
-    ts = ts.sort_values()
-    days = ts.tz_convert("UTC").date
-    same_day = np.concatenate([[False], days[1:] == days[:-1]])
-    deltas = np.diff(ts.view("i8")) / 1e9  # seconds
+    if idx.tz is None:
+        idx = idx.tz_localize("UTC")
+    else:
+        idx = idx.tz_convert("UTC")
+
+    # --- Compute adjacent deltas (length N-1) and same-day mask (length N-1) ---
+    idx = idx.sort_values()
+    deltas = np.diff(idx.view("i8")) / 1e9  # seconds, float64
+    dates = idx.date
+    same_day = (dates[1:] == dates[:-1])
 
     min_gap = expected_sec * gap_factor
     max_gap = max_within_day_gap_hours * 3600.0
 
     mask = same_day & (deltas >= min_gap) & (deltas < max_gap)
-    idxs = np.where(mask)[0]
-    if len(idxs) == 0:
+    if not np.any(mask):
         return pd.DataFrame(columns=["start", "end", "gap_seconds", "missing_bars"])
 
-    starts = ts[idxs]
-    ends = ts[idxs + 1]
+    i = np.where(mask)[0]  # indexes of left element in each pair
+    starts = idx[i]
+    ends = idx[i + 1]
     gaps = (ends.view("i8") - starts.view("i8")) / 1e9
     missing = np.maximum((gaps / expected_sec) - 1.0, 0.0).round().astype(int)
 
@@ -375,7 +389,7 @@ def process_symbol(
 
     # detect within-day gaps
     gaps_df = detect_within_day_gaps(
-        resolved["Datetime"].dt.tz_convert("UTC"),
+        resolved["Datetime"],
         expected_sec=exp_sec,
         gap_factor=cfg.gap_factor,
         max_within_day_gap_hours=cfg.max_within_day_gap_hours,
